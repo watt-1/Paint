@@ -23,14 +23,14 @@ namespace Paint {
     Point mobjMouseDownCoords;
 
     /// <summary>
-    /// Aktualně vybrané pero
+    /// Aktualně vybrané pero pro kreslení popředí
     /// </summary>
-    Pen mobjPen;
-    
+    Pen mobjFgPen;
+
     /// <summary>
-    /// Aktuálně vybraný brush
+    /// Aktualně vybrané pero pro kreslení výplně pozadí
     /// </summary>
-    Brush mobjBrush;
+    Pen mobjBgPen;
 
     /// <summary>
     /// Ukládá již nakreslený obraz
@@ -41,6 +41,11 @@ namespace Paint {
     /// Aktuální obraz zobrazovky, který se zobrazuje na PictureBoxu
     /// </summary>
     Bitmap mobjPlatno;
+
+    /// <summary>
+    /// Jestli se vybírá barva popředí nebo pozadí
+    /// </summary>
+    bool mblIsChoosingFgColor = true;
 
 
     /// <summary>
@@ -53,8 +58,6 @@ namespace Paint {
     /// </summary>
     public FormMain() {
       InitializeComponent();
-
-      mobjPen = new Pen(Color.FromArgb(255, 0, 0), 5);
     }
 
     private void pbPlatno_Click(object sender, EventArgs e) {
@@ -67,7 +70,36 @@ namespace Paint {
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void FormMain_Load(object sender, EventArgs e) {
+      mobjFgPen = new Pen(pbBtnSelectFgColor.BackColor);
+      mobjBgPen = new Pen(pbBtnSelectBgColor.BackColor);
+      NastavTloustku(20);
       VytvorNovouGrafikuAPlatno();
+    }
+
+    /// <summary>
+    /// Nastaví aktuální barvu, popředí/pozadí dle režimu určeného mblIsChoosingFgColor
+    /// </summary>
+    /// <param name="vybranaBarva"></param>
+    private void NastavBarvu(Color vybranaBarva) {
+      if (mblIsChoosingFgColor) {
+        mobjFgPen.Color = vybranaBarva;
+        pbBtnSelectFgColor.BackColor = vybranaBarva;
+      } else {
+        mobjBgPen.Color = vybranaBarva;
+        pbBtnSelectBgColor.BackColor = vybranaBarva;
+      }
+      
+    }
+
+    /// <summary>
+    /// Nastaví aktualní tloušťku pera
+    /// </summary>
+    /// <param name="tloustka">Nová tloušťka pera</param>
+    private void NastavTloustku(int tloustka) {
+      trackBarTloustka.Value = tloustka;
+      textBoxTloustka.Text = tloustka.ToString();
+      mobjFgPen.Width = tloustka;
+      mobjBgPen.Width = (tloustka > 2) ? (tloustka - 2) : 0;
     }
 
 
@@ -97,7 +129,7 @@ namespace Paint {
       mobjPlatno = lobjNovePlatno;
     }
 
-    private void btnClear_Click(object sender, EventArgs e) {
+    private void btnVymazVse_Click(object sender, EventArgs e) {
       mobjGrafika.Clear(Color.White);
       pbPlatno.Invalidate();
     }
@@ -130,7 +162,10 @@ namespace Paint {
 
       if (mblIsShowingPreview) {
         mobjGrafika.DrawImageUnscaled(mobjNakreslenyObraz, 0, 0);
-        mobjGrafika.DrawLine(mobjPen, mobjMouseDownCoords.X, mobjMouseDownCoords.Y, e.X, e.Y);
+        mobjGrafika.DrawLine(mobjFgPen, mobjMouseDownCoords.X, mobjMouseDownCoords.Y, e.X, e.Y);
+        if (mobjBgPen.Width > 0) {
+          mobjGrafika.DrawLine(mobjBgPen, mobjMouseDownCoords.X, mobjMouseDownCoords.Y, e.X, e.Y);
+        }
         pbPlatno.Invalidate();
       }
     }
@@ -220,6 +255,64 @@ namespace Paint {
         mobjGrafika.Clear(Color.White);
         mobjGrafika.DrawImageUnscaled(bitmap, 0, 0);
       }
+    }
+
+    /// <summary>
+    /// Kliknutí na tlačítko s předdefinovanou barvou
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pbBtnColor_Click(object sender, EventArgs e) {
+      PictureBox pbBtn = (PictureBox)sender;
+      NastavBarvu(pbBtn.BackColor);
+    }
+
+    /// <summary>
+    /// Tlačítko pro výběr vlastní barvy
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void btnCustomColor_Click(object sender, EventArgs e) {
+
+    }
+
+    /// <summary>
+    /// Tlačítko pro režim nastavování barvy popředí
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pbBtnSelectFgColor_Click(object sender, EventArgs e) {
+      mblIsChoosingFgColor = true;
+    }
+
+    /// <summary>
+    /// Tlačítko pro režim nastavování barvy pozadí
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void pbBtnSelectBgColor_Click(object sender, EventArgs e) {
+      mblIsChoosingFgColor = false;
+    }
+
+    /// <summary>
+    /// Změna hodnoty textBoxu pro tloušťku
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void textBoxTloustka_TextChanged(object sender, EventArgs e) {
+      int novaTloustka;
+      if (int.TryParse(textBoxTloustka.Text, out novaTloustka) && novaTloustka > 0) {
+        NastavTloustku(novaTloustka);
+      }
+    }
+
+    /// <summary>
+    /// Změna posuvníku pro tloušťku
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void trackBarTloustka_Scroll(object sender, EventArgs e) {
+      NastavTloustku(trackBarTloustka.Value);
     }
   }
 }
