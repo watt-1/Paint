@@ -300,9 +300,9 @@ namespace Paint {
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void textBoxTloustka_TextChanged(object sender, EventArgs e) {
-      int novaTloustka;
-      if (int.TryParse(textBoxTloustka.Text, out novaTloustka) && novaTloustka > 0) {
-        NastavTloustku(novaTloustka);
+      int lIntNovaTloustka;
+      if (int.TryParse(textBoxTloustka.Text, out lIntNovaTloustka) && lIntNovaTloustka > 0) {
+        NastavTloustku(lIntNovaTloustka);
       }
     }
 
